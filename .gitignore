@@ -1,0 +1,12 @@
+.vscode
+.ipynb_checkpoints
+__pycache__
+
+.cache
+
+*.png
+
+Cilicon
+DrugBank
+PPI/
+output
