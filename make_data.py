@@ -1,47 +1,20 @@
-#%% load PPI data
 import csv
 import json
 import numpy as np
 from scipy.sparse import coo_matrix
+from os.path import join
 
-#%% load the full link data
-# PPI_path = '/scratch/hdd001/home/haotian/Covid19Datasets/PPI/9606.protein.links.v11.0.txt'
-# PPI = []
-# ppid2index = {}
-# index2ppid = {}
-# cnt = 0
-# with open(PPI_path, 'r') as tsvfile:
-#     reader = csv.reader(tsvfile, delimiter=' ')
-#     header = reader.__next__()
-#     for i, row in enumerate(reader):
-#         if not row[0] in ppid2index:
-#             ppid2index[row[0]] = cnt
-#             index2ppid[cnt] = row[0]
-#             cnt += 1
-#         if not row[1] in ppid2index:
-#             ppid2index[row[1]] = cnt
-#             index2ppid[cnt] = row[1]
-#             cnt += 1
-#         PPI.append([ppid2index[row[0]], ppid2index[row[1]], int(row[2])])
-#         print(i)
-#         # if i > 10000:
-#         #     break
-# # print(f"{PPI}\n{ppid2index}\n{index2ppid}")
-# print(f"total count {cnt}")
-
-#%% load action link data
-PPI_path = '/scratch/hdd001/home/haotian/Covid19Datasets/PPI/9606.protein.actions.v11.0.txt'
-PPI = [[0,0,0]]
-ppid2index = {}
-index2ppid = {}
-cnt = 0
-with open(PPI_path, 'r') as tsvfile:
-    reader = csv.reader(tsvfile, delimiter='\t')
-    header = reader.__next__()
-    print(header)
-    for i, row in enumerate(reader):
-        if row[2] in ['activation', 'binding', 'catalysis', 'reaction']:
-            ori_cnt = cnt
+# load and store the full PPI data
+def make_full_PPI_from_STRING(output_folder='full'):    
+    PPI_path = '/scratch/hdd001/home/haotian/Covid19Datasets/PPI/9606.protein.links.v11.0.txt'
+    PPI = []
+    ppid2index = {}
+    index2ppid = {}
+    cnt = 0
+    with open(PPI_path, 'r') as tsvfile:
+        reader = csv.reader(tsvfile, delimiter=' ')
+        header = reader.__next__()
+        for i, row in enumerate(reader):
             if not row[0] in ppid2index:
                 ppid2index[row[0]] = cnt
                 index2ppid[cnt] = row[0]
@@ -50,53 +23,74 @@ with open(PPI_path, 'r') as tsvfile:
                 ppid2index[row[1]] = cnt
                 index2ppid[cnt] = row[1]
                 cnt += 1
-            if [ppid2index[row[0]], ppid2index[row[1]]] == PPI[-1][:2]:
-                PPI[-1] = [ppid2index[row[0]], ppid2index[row[1]], int(row[6])]
-            else:
-                PPI.append([ppid2index[row[0]], ppid2index[row[1]], int(row[6])])
+            PPI.append([ppid2index[row[0]], ppid2index[row[1]], int(row[2])])
             print(i)
-        # if i > 10000:
-        #     break
-# print(f"{PPI}\n{ppid2index}\n{index2ppid}")
-print(f"total count {cnt}")
+            # if i > 10000:
+            #     break
+    # print(f"{PPI}\n{ppid2index}\n{index2ppid}")
+    print(f"total count {cnt}")
+    
+    num_protein = cnt
+    with open(join(output_folder, 'ppid2index.json'), 'w') as json_file:
+        json.dump(ppid2index, json_file)
+    with open(join(output_folder, 'index2ppid.json'), 'w') as json_file:
+        json.dump(index2ppid, json_file)
+    PPI = np.array(PPI, dtype=int)
+    np.savetxt(join(output_folder, 'PPI.txt'), PPI, fmt='%d')
+    PPI = coo_matrix((PPI[:,2], (PPI[:,0], PPI[:,1])), shape=(cnt, cnt), dtype=int)
+    return
 
-#%% save PPI and make sparse matrix
-num_protein = cnt
-with open('ppid2index.json', 'w') as json_file:
-  json.dump(ppid2index, json_file)
-with open('index2ppid.json', 'w') as json_file:
-  json.dump(index2ppid, json_file)
-PPI = np.array(PPI, dtype=int)
-np.savetxt('PPI.txt', PPI, fmt='%d')
-PPI = coo_matrix((PPI[:,2], (PPI[:,0], PPI[:,1])), shape=(cnt, cnt), dtype=int)
+# load and store the action PPI data
+def make_action_PPI_from_STRING(output_folder='action'):    
+    PPI_path = '/scratch/hdd001/home/haotian/Covid19Datasets/PPI/9606.protein.actions.v11.0.txt'
+    PPI = [[0,0,0]]
+    ppid2index = {}
+    index2ppid = {}
+    cnt = 0
+    with open(PPI_path, 'r') as tsvfile:
+        reader = csv.reader(tsvfile, delimiter='\t')
+        header = reader.__next__()
+        print(header)
+        for i, row in enumerate(reader):
+            if row[2] in ['activation', 'binding', 'catalysis', 'reaction']:
+                ori_cnt = cnt
+                if not row[0] in ppid2index:
+                    ppid2index[row[0]] = cnt
+                    index2ppid[cnt] = row[0]
+                    cnt += 1
+                if not row[1] in ppid2index:
+                    ppid2index[row[1]] = cnt
+                    index2ppid[cnt] = row[1]
+                    cnt += 1
+                if [ppid2index[row[0]], ppid2index[row[1]]] == PPI[-1][:2]:
+                    PPI[-1] = [ppid2index[row[0]], ppid2index[row[1]], int(row[6])]
+                else:
+                    PPI.append([ppid2index[row[0]], ppid2index[row[1]], int(row[6])])
+                print(i)
+            # if i > 10000:
+            #     break
+    # print(f"{PPI}\n{ppid2index}\n{index2ppid}")
+    print(f"total count {cnt}")
+    
+    num_protein = cnt
+    with open(join(output_folder, 'ppid2index.json'), 'w') as json_file:
+        json.dump(ppid2index, json_file)
+    with open(join(output_folder, 'index2ppid.json'), 'w') as json_file:
+        json.dump(index2ppid, json_file)
+    PPI = np.array(PPI, dtype=int)
+    np.savetxt(join(output_folder, 'PPI.txt'), PPI, fmt='%d')
+    PPI = coo_matrix((PPI[:,2], (PPI[:,0], PPI[:,1])), shape=(cnt, cnt), dtype=int)
+    return
 
-#%% load PPI
-data_type='full'
-with open(f'/scratch/hdd001/home/haotian/Covid19Datasets/output/{data_type}/ppid2index.json', 'r') as json_file:
-    ppid2index = json.load(json_file)
-cnt = len(ppid2index)
-PPI = np.loadtxt(f'/scratch/hdd001/home/haotian/Covid19Datasets/output/{data_type}/PPI.txt', dtype=int)
-PPI = coo_matrix((PPI[:,2], (PPI[:,0], PPI[:,1])), shape=(cnt, cnt), dtype=int)
-PPI = (PPI + PPI.T) / 2
-PPI_numpy = PPI.todense()
-
-# %% umap of PPI
-import matplotlib.pyplot as plt
-import seaborn as sns
-import umap
-import pandas as pd
-sns.set(style='white', context='notebook', rc={'figure.figsize':(14,10)})
-
-# %%
-# reducer = umap.UMAP()
-# embedding = reducer.fit_transform(PPI.todense())
-# embedding.shape
-# # plt.scatter(embedding[:, 0], embedding[:, 1], c=[sns.color_palette()[x] for x in iris.target])
-# plt.scatter(embedding[:, 0], embedding[:, 1], alpha=0.4)
-# plt.gca().set_aspect('equal', 'datalim')
-# plt.title('UMAP projection of the PPI', fontsize=24)
-# plt.savefig('original.png')
-
+def load_PPI(data_type='action'):
+    with open(f'/scratch/hdd001/home/haotian/Covid19Datasets/output/{data_type}/ppid2index.json', 'r') as json_file:
+        ppid2index = json.load(json_file)
+    cnt = len(ppid2index)
+    PPI = np.loadtxt(f'/scratch/hdd001/home/haotian/Covid19Datasets/output/{data_type}/PPI.txt', dtype=int)
+    PPI = coo_matrix((PPI[:,2], (PPI[:,0], PPI[:,1])), shape=(cnt, cnt), dtype=int)
+    PPI = (PPI + PPI.T) / 2
+    PPI_numpy = PPI.todense()
+    return PPI, PPI_numpy
 
 # %% read names
 name2ppid = {}
