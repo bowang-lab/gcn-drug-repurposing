@@ -4,3 +4,6 @@
 [submodule "resources/toolbox"]
 	path = resources/toolbox
 	url = git@github.com:emreg00/toolbox.git
+[submodule "toolbox"]
+	path = toolbox
+	url = git@github.com:emreg00/toolbox.git
