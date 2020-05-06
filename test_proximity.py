@@ -11,10 +11,10 @@ network_file = "2016data/network/networ.sif"
 network = wrappers.get_network(file_name, only_lcc=True)
 
 # provide drugs objects
-drugs = load_drugs_from()
+drugs = load_drugs_from("2016data/target/drug_to_geneids.pcl.all")
 
 # provide disease objects
-disease = load_diseases_from()
+disease = load_diseases_from("2016data/disease/disease_genes.tsv")
 
 for x in drugs:
     for y in diseases:
