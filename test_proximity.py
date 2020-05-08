@@ -1,4 +1,6 @@
 # test proximity
+import multiprocessing
+from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
 
@@ -32,19 +34,57 @@ proximity = pd.read_csv('proximity.dat', sep=' ')
 # (1.5915, 0.36657570841505577))
 # mean, std = estimate_dist_stats_of()
 # -- w/o computing mean, std
-for i in range(3):  # (len(proximity)):
-    start_time = time.time()
-    row = proximity.loc[i]
-    drug_name = row['group']
-    disease_name = row['disease']
-    d, z, (mean, sd) = wrappers.calculate_proximity(
-        network, drugs[drug_name], diseases[disease_name])
+# bins = network_utilities.get_degree_binning(network, bin_size=100)
+# for i in range(len(proximity)):
+#     start_time = time.time()
+#     row = proximity.loc[i]
+#     drug_name = row['group']
+#     disease_name = row['disease']
+#     d, z, (mean, sd) = wrappers.calculate_proximity(
+#         network, drugs[drug_name], diseases[disease_name], bins=bins)
+#     proximity.at[i, 'd'] = d
+#     proximity.at[i, 'z'] = z
+#     iter_time = time.time() - start_time
+#     print(f'iter {i}, {iter_time:.4f} s')
+
+# proximity.to_csv('result.dat', sep=' ')
+
+# ==================================================
+# -- parallel version
+inputs = range(len(proximity))
+bins = network_utilities.get_degree_binning(network, bin_size=100)
+
+
+def processInput(i):
+    try:
+        start_time = time.time()
+        row = proximity.loc[i]
+        drug_name = row['group']
+        disease_name = row['disease']
+        d, z, (mean, sd) = wrappers.calculate_proximity(
+            network, drugs[drug_name], diseases[disease_name], bins=bins)
+        iter_time = time.time() - start_time
+        print(f'iter {i}, {iter_time:.4f} s')
+        return (i, d, z)
+    except:
+        print(f"iter {i} is missing")
+
+
+num_cores = multiprocessing.cpu_count()
+print(f"parallel on {num_cores} cores")
+
+total_time = time.time()
+results = Parallel(n_jobs=num_cores)(delayed(processInput)(i) for i in inputs)
+total_time = time.time() - total_time
+print(f'total time: {total_time} s')
+
+print(results)
+for i, d, z in results:
     proximity.at[i, 'd'] = d
     proximity.at[i, 'z'] = z
-    iter_time = time.time() - start_time
-    print(f'iter {i}, {iter_time:.4f} s')
-
 proximity.to_csv('result.dat', sep=' ')
+# ==================================================
+
 
 # select = (proximity['disease']=) & ()
 # proximity.loc[proximity.index[m & m2], 'z'] = 0
