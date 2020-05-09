@@ -47,7 +47,7 @@ proximity = pd.read_csv('proximity.dat', sep=' ')
 #     iter_time = time.time() - start_time
 #     print(f'iter {i}, {iter_time:.4f} s')
 
-# proximity.to_csv('result.dat', sep=' ')
+# proximity.to_csv('result.dat', sep=' ', na_rep='NA')
 
 # ==================================================
 # -- parallel version
@@ -70,7 +70,7 @@ def processInput(i):
         print(f"iter {i} is missing")
 
 
-num_cores = multiprocessing.cpu_count()
+num_cores = 16  # multiprocessing.cpu_count()
 print(f"parallel on {num_cores} cores")
 
 total_time = time.time()
@@ -82,7 +82,7 @@ print(results)
 for i, d, z in results:
     proximity.at[i, 'd'] = d
     proximity.at[i, 'z'] = z
-proximity.to_csv('result.dat', sep=' ')
+proximity.to_csv('result.dat', sep=' ', na_rep='NA')
 # ==================================================
 
 

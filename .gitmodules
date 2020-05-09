@@ -7,3 +7,6 @@
 [submodule "toolbox"]
 	path = toolbox
 	url = git@github.com:emreg00/toolbox.git
+[submodule "resources/GraphEmbedding"]
+	path = resources/GraphEmbedding
+	url = git@github.com:shenweichen/GraphEmbedding.git
