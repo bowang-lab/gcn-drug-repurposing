@@ -10,7 +10,9 @@ import time
 
 # load data
 
-# graph embedding
+# graph embedding - graphrep
+from openne import graphrep
+
 
 # train the gcn
 

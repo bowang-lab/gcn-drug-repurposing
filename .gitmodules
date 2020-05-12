@@ -10,3 +10,6 @@
 [submodule "resources/GraphEmbedding"]
 	path = resources/GraphEmbedding
 	url = git@github.com:shenweichen/GraphEmbedding.git
+[submodule "resources/OpenNE"]
+	path = resources/OpenNE
+	url = git@github.com:thunlp/OpenNE.git
