@@ -13,3 +13,6 @@
 [submodule "resources/OpenNE"]
 	path = resources/OpenNE
 	url = git@github.com:thunlp/OpenNE.git
+[submodule "resources/BioNEV"]
+	path = resources/BioNEV
+	url = git@github.com:xiangyue9607/BioNEV.git

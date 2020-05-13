@@ -1,3 +1,5 @@
+import urllib.request
+import urllib.parse
 from modules.netmodules import DrugModule, DiseaseModule
 import pickle
 import csv
@@ -40,6 +42,38 @@ def load_diseases_from(file):
     return diseases
 
 
+def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
+    if to_data == 'String':
+        target = 'STRING_ID'
+    url = 'https://www.uniprot.org/uploadlists/'
+
+    params = {
+        'from': 'ACC+ID',
+        'to': target,
+        'format': style,
+        'query': query
+    }
+
+    data = urllib.parse.urlencode(params)
+    data = data.encode('utf-8')
+    req = urllib.request.Request(url, data)
+    with urllib.request.urlopen(req) as f:
+        response = f.read()
+    # print(response.decode('utf-8'))
+    return response
+
+
+def make_SARSCOV2_PPI():
+    ppi = pd.read_csv('data/viral_ppi/GordonEtAl-2020.tsv', sep='\t')
+    name_list = ppi['Preys'].to_list()
+    query = ' '.join(name_list).strip()
+    string_id = query_uniprot2data(query=query).decode(
+        'utf-8').strip().split('\n')
+    # ppi['string_id'] = string_id
+    return string_id
+
+
 if __name__ == "__main__":
-    drugs = load_drugs_from("2016data/target/drug_to_geneids.pcl.all")
-    diseases = load_diseases_from("2016data/disease/disease_genes.tsv")
+    # drugs = load_drugs_from("2016data/target/drug_to_geneids.pcl.all")
+    # diseases = load_diseases_from("2016data/disease/disease_genes.tsv")
+    res = query_uniprot2data()

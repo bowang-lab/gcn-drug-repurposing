@@ -11,4 +11,6 @@ DrugBank
 PPI/
 output
 2016data/
+data/
+saved/
 *.dat
