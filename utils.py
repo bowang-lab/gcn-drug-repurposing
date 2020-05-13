@@ -60,20 +60,65 @@ def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
     with urllib.request.urlopen(req) as f:
         response = f.read()
     # print(response.decode('utf-8'))
-    return response
+    return response.decode('utf-8')
 
 
 def make_SARSCOV2_PPI():
     ppi = pd.read_csv('data/viral_ppi/GordonEtAl-2020.tsv', sep='\t')
     name_list = ppi['Preys'].to_list()
     query = ' '.join(name_list).strip()
-    string_id = query_uniprot2data(query=query).decode(
-        'utf-8').strip().split('\n')
+    string_id = query_uniprot2data(query=query).strip().split('\n')
     # ppi['string_id'] = string_id
     return string_id
+
+
+def load_DTI():
+    ppid2uniprot = {}
+    uniprot2ppid = {}
+    with open('data/ppid_uniprotid.tsv', 'r') as tsvfile:
+        reader = csv.reader(tsvfile, delimiter='\t')
+        header = reader.__next__()
+        print(header)
+        ppid_col = header.index('Protein stable ID')
+        uniprot_col = header.index(r"UniProtKB/Swiss-Prot ID")
+        for i, row in enumerate(reader):
+            ppid2uniprot['9606.'+row[ppid_col]] = row[uniprot_col]
+            uniprot2ppid[row[uniprot_col]] = '9606.'+row[ppid_col]
+            # print(i)
+    target_drug_dict = {}
+    with open('data/DrugBank/drugbank_all_targets.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        header = reader.__next__()
+        col1 = header.index('UniProt ID')
+        col2 = header.index('Uniprot Title')
+        col3 = header.index('Drug IDs')
+        species = header.index('Species')
+        for i, row in enumerate(reader):
+            if row[species] == 'Humans':
+                # FIXME: the id is kind of not aligned, fix here using the online upi conversion
+                try:
+                    target_drug_dict[uniprot2ppid[row[col1]]
+                                     ] = row[col3].strip().split('; ')
+                except:
+                    pass
+    drug_target_dict = {}
+    drug2index = {}
+    index2drug = {}
+    cnt = 0
+    for target, drugs in target_drug_dict.items():
+        for drug in drugs:
+            if not drug in drug_target_dict:
+                drug_target_dict[drug] = [target]
+                drug2index[drug] = cnt
+                index2drug[cnt] = drug
+                cnt += 1
+            else:
+                drug_target_dict[drug].append(target)
+    return drug_target_dict
 
 
 if __name__ == "__main__":
     # drugs = load_drugs_from("2016data/target/drug_to_geneids.pcl.all")
     # diseases = load_diseases_from("2016data/disease/disease_genes.tsv")
-    res = query_uniprot2data()
+    # res = query_uniprot2data()
+    pass
