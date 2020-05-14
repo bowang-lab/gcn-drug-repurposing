@@ -1,4 +1,5 @@
 # test proximity
+from matplotlib import pyplot as plt
 import warnings
 from os.path import join
 import git
@@ -107,13 +108,47 @@ for k, v in drug_target_dict.items():
     else:
         print(f'omit drug {k} with targets {v}\n')
 drug_emb_matrix = np.vstack(drug_emb_matrix)
+# normalize
 
 # ranks of drugs
 ranks = np.argsort((drug_emb_matrix @ covid_emb.T).max(1))[
     ::-1]  # ranks of drugs
 # ==================================================
 
-# validation
+# ==================================================
+# -- validation
+drugs_in_trial = pd.read_csv('data/Covid-19 Clinical Trials.csv')
+union_drugs_in_trial = []
+drugs_orders_label = np.zeros(len(drugs_orders), dtype=int)
+for id in drugs_in_trial['DrugBank ID']:
+    if id in drugs_orders:
+        union_drugs_in_trial.append(id)
+        drugs_orders_label[drugs_orders.index(id)] = 1
+print(f'total {len(union_drugs_in_trial)} experimental Covid-19 drugs found in the current drug gallery')
+
+num_pos = len(union_drugs_in_trial)
+hit_cnt = 0
+recall_curve = np.zeros(len(ranks), dtype=float)
+for i, id in enumerate(ranks):
+    if drugs_orders[id] in union_drugs_in_trial:
+        hit_cnt += 1
+        print(f"the {i}-th proposed drug is in the clinical trial list. " +
+              f"found {hit_cnt} clinical trial drugs." +
+              f"recall {hit_cnt/num_pos}.")
+    recall_curve[i] = hit_cnt/num_pos
+# plot
+plt.figure()
+lw = 2
+plt.plot(recall_curve, color='darkorange',
+         lw=lw, label='Recall1')
+plt.plot([0, len(ranks)], [0, 1], color='navy', lw=lw, linestyle='--')
+plt.ylim([0.0, 1.05])
+plt.xlabel('# in ranks')
+plt.ylabel('Recall')
+plt.title('Recall of drugs undergoing clinical trials')
+plt.legend(loc="lower right")
+plt.savefig('saved/figures/recall.png')
+# ==================================================
 
 # ==================================================
 # -- save file
