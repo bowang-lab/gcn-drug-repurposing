@@ -1,7 +1,7 @@
-# test proximity
+# %run make_embedding.py --gcn None --embs GraphRep
 from matplotlib import pyplot as plt
 import warnings
-from os.path import join
+from os.path import join, exists
 import git
 # from openne import graphrep
 import multiprocessing
@@ -25,11 +25,14 @@ parser.add_argument('--dti', type=str, default='Drugbank',
 parser.add_argument('--mode', type=str, default='Covid-19-train',
                     choices=['Covid-19-train'],
                     help='Which mode to use')
-parser.add_argument('--embs', type=str, default='GraphRep',
+parser.add_argument('--embs', type=str, default='struc2vec',
+                    choices=['GraphRep', 'node2vec', 'z-score'],
                     help='Which embs method to use')
 parser.add_argument('--gcn', type=str, default='gcn',
                     help='Which gcn model to use and whether use a gcn after embs.'
                     ' Default: gcn. Set to None if not using gcn ')
+parser.add_argument('--beam', type=int, default=5,
+                    help='beam size')
 args = parser.parse_args()
 
 # ==================================================
@@ -42,6 +45,9 @@ if args.ppi == 'STRING':
         'resources/BioNEV/data/STRING_PPI/node_list.txt', sep='\t', index_col=0)
     drug_target_dict = load_DTI()
     covid_protein_list = make_SARSCOV2_PPI()
+    # ppid2id
+    nodes['id'] = nodes.index
+    ppid2id = nodes.set_index('STRING_id').to_dict()['id']  # len 15131
 else:
     network_file = "2016data/network/network.sif"
     G = wrappers.get_network(network_file, only_lcc=True)
@@ -58,16 +64,22 @@ else:
 # try loading pretrained embedding
 file_name = f"{args.ppi}_PPI_{args.embs}_embs.txt"
 emb_folder = 'saved/embs'
-ppi_embs = np.loadtxt(join(emb_folder, file_name), skiprows=1)
-ppi_id = ppi_embs[:, 0].astype(int)
-ppi_embs = ppi_embs[:, 1:]
-protein_embs_dict = {}
-for i, id in enumerate(ppi_id):
-    protein_embs_dict[nodes.at[id, 'STRING_id']] = ppi_embs[i]
+if args.embs == 'struc2vec':
+    if exists(join(emb_folder, file_name)):
+        ppi_embs = np.loadtxt(join(emb_folder, file_name), skiprows=1)
+        ppi_id = ppi_embs[:, 0].astype(int)
+        ppi_embs = ppi_embs[:, 1:]
+        protein_embs_dict = {}
+        for i, id in enumerate(ppi_id):
+            protein_embs_dict[nodes.at[id, 'STRING_id']] = ppi_embs[i]
+elif args.embs == 'z-score':
+    pass
 # ==================================================
 
 # ==================================================
 # -- train the gcn
+if args.gcn:
+    print('using gcn')
 # ==================================================
 
 # ==================================================
@@ -75,44 +87,76 @@ for i, id in enumerate(ppi_id):
 # ==================================================
 
 # ==================================================
-# -- make predictions
+# -- make predictions using z-score
 
-# ppid2id
-nodes['id'] = nodes.index
-ppid2id = nodes.set_index('STRING_id').to_dict()['id']  # len 15131
 
-# covid_emb
-covid_emb = []
-for protein in covid_protein_list:
-    try:
-        covid_emb.append(protein_embs_dict[protein])
-    except:
-        print(f'missing protein {protein} in ppi data')
-covid_emb = np.vstack(covid_emb)  # (238, 100)
+def make_nodes(list_of_protein_name):
+    nodes = [str(ppid2id.get(name))
+             for name in list_of_protein_name if name in ppid2id]
+    return nodes
 
-# FIXME: the number of embeddings are not consistent!!!
 
-# drugs_embs
 drugs_orders = []
-drug_emb_matrix = []
-for k, v in drug_target_dict.items():
-    tmp = []
-    for protein in v:
+if args.embs == 'z-score':
+    drug_dists = []
+    cnt = 0
+    covid_nodes = make_nodes(covid_protein_list)
+    for k, v in drug_target_dict.items():
+        cnt += 1
+        print(cnt)
+        start_time = time.time()
+        drug_nodes = make_nodes(v)
+        if drug_nodes:
+            try:
+                tmp = wrappers.calculate_closest_distance(
+                    G, nodes_from=drug_nodes, nodes_to=covid_nodes)
+                drug_orders.append(k)
+                drug_dists.append(tmp)
+            except:
+                pass
+    drug_dists = np.array(drug_dists)
+    ranks = np.argsort(drug_dists)
+# ==================================================
+
+
+# ==================================================
+# -- make predictions
+if args.embs == 'struc2vec':
+    # covid_emb
+    covid_emb = []
+    for protein in covid_protein_list:
         try:
-            tmp.append(protein_embs_dict[protein])
+            covid_emb.append(protein_embs_dict[protein])
         except:
             print(f'missing protein {protein} in ppi data')
-    if len(tmp) > 0:
-        drugs_orders.append(k)
-        drug_emb_matrix.append(np.vstack(tmp).mean(0))
-    else:
-        print(f'omit drug {k} with targets {v}\n')
-drug_emb_matrix = np.vstack(drug_emb_matrix)
-# normalize
+    covid_emb = np.vstack(covid_emb)  # (238, 100)
 
-# ranks of drugs
-ranks = np.argsort((drug_emb_matrix @ covid_emb.T).max(1))[
-    ::-1]  # ranks of drugs
+    # FIXME: the number of embeddings are not consistent!!!
+
+    # drugs_embs
+    drug_emb_matrix = []
+    for k, v in drug_target_dict.items():
+        tmp = []
+        for protein in v:
+            try:
+                tmp.append(protein_embs_dict[protein])
+            except:
+                print(f'missing protein {protein} in ppi data')
+        if len(tmp) > 0:
+            drugs_orders.append(k)
+            drug_emb_matrix.append(np.vstack(tmp).mean(0))
+        else:
+            print(f'omit drug {k} with targets {v}\n')
+    drug_emb_matrix = np.vstack(drug_emb_matrix)
+    # normalize
+
+    # ranks of drugs
+    ranks = np.argsort((drug_emb_matrix @ covid_emb.T).max(1))[
+        ::-1]  # ranks of drugs
+
+drug_rank = []
+for i in ranks:
+    drug_rank.append(drugs_orders[i])
 # ==================================================
 
 # ==================================================
@@ -155,4 +199,12 @@ plt.savefig('saved/figures/recall.png')
 repo = git.Repo(search_parent_directories=True)
 sha = repo.head.object.hexsha
 script_name = repo.git.rev_parse(sha, short=6) + '.py'
+# ==================================================
+
+# ==================================================
+# -- combination
+# computing using covid_emb and drug_emb_matrix
+
+# given a rank of drugs, building the beam search
+beam_size = args.beam
 # ==================================================
