@@ -77,9 +77,13 @@ elif args.embs == 'z-score':
 # ==================================================
 
 # ==================================================
-# -- train the gcn
+# -- train / load the gcn
 if args.gcn:
     print('using gcn')
+    ppi_embs = np.loadtxt(join(emb_folder, 'graph_embs.txt'))
+    protein_embs_dict = {}
+    for i, id in enumerate(ppi_id):
+        protein_embs_dict[nodes.at[id, 'STRING_id']] = ppi_embs[i]
 # ==================================================
 
 # ==================================================
