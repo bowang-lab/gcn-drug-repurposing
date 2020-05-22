@@ -64,8 +64,8 @@ class MSI():
     def add_edges(self, edge_list, from_node_type, to_node_type):
         for from_node, to_node in edge_list:
             self.graph.add_edge(from_node, to_node)
-            self.graph.node[from_node]["type"] = from_node_type
-            self.graph.node[to_node]["type"] = to_node_type
+            self.graph.nodes[from_node]["type"] = from_node_type
+            self.graph.nodes[to_node]["type"] = to_node_type
 
     def merge_one_to_one_dicts(self, dict_list):
         out_dict = dict()
