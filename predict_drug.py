@@ -181,6 +181,8 @@ def main(config):
         drugs_name_ranked = graph_embedding(config, msi, gcn=False)
     elif method == 'gcn' and config['gcn']['embs'] == "node2vec":
         drugs_name_ranked = graph_embedding(config, msi, gcn=True)
+    else:
+        raise NotImplementedError
     with open(save_drug_candidates_dir, 'w') as f:
         f.write('\n'.join(drugs_name_ranked[:topk]))
     return msi
