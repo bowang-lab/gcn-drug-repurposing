@@ -6,7 +6,9 @@
 
 ## Predict drug candidates for covid
 
-Use `python predict_drug.py -c config.json` to generate a drug list and store in a output file assigned in `config.json`.
+- Download the data [here](https://drive.google.com/drive/folders/1W9G2Zxq385FlJSWaB3-wxsmBXTpfrPl2?usp=sharing) and set the data directories in `config.json`.
+
+- Use `python predict_drug.py -c config.json` to generate a drug list and store in a output file assigned in `config.json`.
 
 It is recommended to put all settings in a config file, i.e. `config.json`.
 
