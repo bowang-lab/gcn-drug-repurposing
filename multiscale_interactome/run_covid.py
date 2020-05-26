@@ -1,3 +1,4 @@
+from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import normalize
 from openne.node2vec import Node2vec
 from openne.graph import Graph
@@ -193,3 +194,127 @@ drugs_name_ranked = [drug if msi.node2name[drug]
 
 with open('drugs_candidataes.txt', 'w') as f:
     f.write('\n'.join(drugs_name_ranked[:40]))
+
+
+# -------------------------------------------------
+msi = MSI()
+msi.load()
+
+# Load saved diffusion profiles
+dp_saved = DiffusionProfiles(
+    alpha=None,
+    max_iter=None,
+    tol=None,
+    weights=None,
+    num_cores=None,
+    save_load_file_path="results/"
+)
+msi.load_saved_node_idx_mapping_and_nodelist(dp_saved.save_load_file_path)
+dp_saved.load_diffusion_profiles(msi.drugs_in_graph + msi.indications_in_graph)
+
+dp_saved.drug_or_indication2diffusion_profile["DB00642"]
+
+
+class DrugToIndication():
+    def __init__(self, directed, file_path, sep="\t"):
+        self.file_path = file_path
+        self.directed = directed
+        self.sep = sep
+        self.load()
+
+    def load_df(self):
+        df = pd.read_csv(self.file_path, sep=self.sep,
+                         index_col=False, dtype=str)
+        self.df = df
+
+    def load_edge_list(self):
+        # Creates directional edgelist from node_1 to node_2
+        assert(not(self.df is None))
+        edge_list = list(zip(self.df["drug"], self.df["indication"]))
+        self.edge_list = edge_list
+
+    def load_graph(self):
+        if (self.directed):
+            self.graph = nx.DiGraph()
+        else:
+            self.graph = nx.Graph()
+        self.graph.add_edges_from(self.edge_list)
+
+    def update_node2attr(self, node2type, col_1, col_2):
+        for node, type_ in zip(self.df[col_1], self.df[col_2]):
+            if node in node2type:
+                assert((node2type[node] == type_) or (
+                    pd.isnull(node2type[node]) and pd.isnull(type_)))
+            else:
+                node2type[node] = type_
+        return node2type
+
+    def load_node2type(self):
+        assert(not(self.df is None))
+        node2type = dict()
+        node2type = self.update_node2attr(node2type, "node_1", "node_1_type")
+        node2type = self.update_node2attr(node2type, "node_2", "node_2_type")
+        self.node2type = node2type
+
+    def load_type2nodes(self):
+        type2nodes = dict()
+        for node, type_ in self.node2type.items():
+            if type_ in type2nodes:
+                type2nodes[type_].add(node)
+            else:
+                type2nodes[type_] = set([node])
+        self.type2nodes = type2nodes
+
+    def load_node2name(self):
+        assert(not(self.df is None))
+        node2name = dict()
+        node2name = self.update_node2attr(node2name, "drug", "drug_name")
+        node2name = self.update_node2attr(
+            node2name, "indication", "indication_name")
+        self.node2name = node2name
+
+    def load_name2node(self):
+        assert(not(self.df is None))
+        name2node = {v: k for k, v in self.node2name.items()}
+        self.name2node = name2node
+
+    def load(self):
+        assert(not(self.file_path is None))
+        self.load_df()
+        self.load_edge_list()
+        self.load_graph()
+        self.load_node2name()
+        self.load_name2node()
+
+
+indication_graph = DrugToIndication(False, 'data/drug_indication_df.tsv')
+list(indication_graph.graph['C0040038'])
+
+drugs_index_in_msi = []
+drugs = []
+indications_index_in_msi = []
+indications = []
+for i, node in enumerate(msi.nodelist):
+    if msi.graph.nodes[node]['type'] == 'drug':
+        drugs.append(node)
+        drugs_index_in_msi.append(i)
+    if msi.graph.nodes[node]['type'] == 'indication':
+        indications.append(node)
+        indications_index_in_msi.append(i)
+# list of indications
+
+num_drugs = len(drugs_index_in_msi)
+all_aucs = []
+for indication in indications:
+    # build ref
+    ref = np.zeros(num_drugs, dtype=int)
+    for pos_drug in list(indication_graph.graph[indication]):
+        ref[drugs.index(pos_drug)] = 1
+    # predict vector
+    tmp = dp_saved.drug_or_indication2diffusion_profile[indication]
+    predict = tmp[drugs_index_in_msi]
+    auc = roc_auc_score(ref, predict)
+    print(auc)
+    all_aucs.append(auc)
+all_aucs = np.array(all_aucs)
+print(f"median auc: {np.median(all_aucs)}, mean auc: {all_aucs.mean()}")
