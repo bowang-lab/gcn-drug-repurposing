@@ -7,6 +7,41 @@ import numpy as np
 import pandas as pd
 
 
+def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
+    if to_data == 'String':
+        target = 'STRING_ID'
+    else:
+        target = to_data
+    url = 'https://www.uniprot.org/uploadlists/'
+
+    params = {
+        'from': 'ACC+ID',
+        'to': target,
+        'format': style,
+        'query': query
+    }
+
+    data = urllib.parse.urlencode(params)
+    data = data.encode('utf-8')
+    req = urllib.request.Request(url, data)
+    with urllib.request.urlopen(req) as f:
+        response = f.read()
+    # print(response.decode('utf-8'))
+    return response.decode('utf-8')
+
+
+def make_SARSCOV2_PPI(
+        file='/h/haotian/Code/deep-drug-repurposing/data/viral_ppi/GordonEtAl-2020.tsv',
+        to_data='GENENAME'):
+    ppi = pd.read_csv(file, sep='\t')
+    name_list = ppi['Preys'].to_list()
+    query = ' '.join(name_list).strip()
+    string_id = query_uniprot2data(
+        query=query, to_data=to_data).strip().split('\n')
+    # ppi['string_id'] = string_id
+    return string_id
+
+
 def load_drugs_from(file):
     """the file should be a pkl binary file."""
 
@@ -40,36 +75,6 @@ def load_diseases_from(file):
             name=name, connected_nodes=connections[i])
         diseases.update(entry.to_dict())
     return diseases
-
-
-def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
-    if to_data == 'String':
-        target = 'STRING_ID'
-    url = 'https://www.uniprot.org/uploadlists/'
-
-    params = {
-        'from': 'ACC+ID',
-        'to': target,
-        'format': style,
-        'query': query
-    }
-
-    data = urllib.parse.urlencode(params)
-    data = data.encode('utf-8')
-    req = urllib.request.Request(url, data)
-    with urllib.request.urlopen(req) as f:
-        response = f.read()
-    # print(response.decode('utf-8'))
-    return response.decode('utf-8')
-
-
-def make_SARSCOV2_PPI():
-    ppi = pd.read_csv('data/viral_ppi/GordonEtAl-2020.tsv', sep='\t')
-    name_list = ppi['Preys'].to_list()
-    query = ' '.join(name_list).strip()
-    string_id = query_uniprot2data(query=query).strip().split('\n')
-    # ppi['string_id'] = string_id
-    return string_id
 
 
 def load_DTI():

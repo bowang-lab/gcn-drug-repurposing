@@ -35,26 +35,26 @@ class ConfigParser:
         self._config = _update_config(config, options, args)
 
         # set save_dir where trained model and log will be saved.
-        save_dir = Path(self.config['trainer']['save_dir'])
-        timestamp = datetime.now().strftime(r'%m%d_%H%M%S') if timestamp else ''
+        # save_dir = Path(self.config['trainer']['save_dir'])
+        # timestamp = datetime.now().strftime(r'%m%d_%H%M%S') if timestamp else ''
 
         exper_name = self.config['name']
-        self._save_dir = save_dir / 'models' / exper_name / timestamp
-        self._log_dir = save_dir / 'log' / exper_name / timestamp
+        # self._save_dir = save_dir / 'models' / exper_name / timestamp
+        # self._log_dir = save_dir / 'log' / exper_name / timestamp
 
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        # self.save_dir.mkdir(parents=True, exist_ok=True)
+        # self.log_dir.mkdir(parents=True, exist_ok=True)
 
-        # save updated config file to the checkpoint dir
-        write_json(self.config, self.save_dir / 'config.json')
+        # # save updated config file to the checkpoint dir
+        # write_json(self.config, self.save_dir / 'config.json')
 
-        # configure logging module
-        setup_logging(self.log_dir)
-        self.log_levels = {
-            0: logging.WARNING,
-            1: logging.INFO,
-            2: logging.DEBUG
-        }
+        # # configure logging module
+        # setup_logging(self.log_dir)
+        # self.log_levels = {
+        #     0: logging.WARNING,
+        #     1: logging.INFO,
+        #     2: logging.DEBUG
+        # }
 
     def initialize(self, name, module, *args, **kwargs):
         """

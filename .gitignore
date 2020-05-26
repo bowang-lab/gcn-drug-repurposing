@@ -12,6 +12,7 @@ PPI/
 output
 2016data/
 data/
+results/
 saved/
 *.dat
 *.txt
