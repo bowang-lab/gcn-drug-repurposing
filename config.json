@@ -3,6 +3,9 @@
     "n_gpu": 1,
     "load_embs": true,
     "method": "diffusion",
+    "eval": {
+        "graph": "eval.weighted.edgelist"
+    },
     "output": {
         "drug_candidates": "drugs_candidataes.txt",
         "graph": "whole_graph.weighted.edgelist"
@@ -13,13 +16,16 @@
     },
     "networks": {
         "gordon_viral_protein": "data/GordonEtAl-2020.tsv",
-        "protein_to_protein": "data/protein_to_protein.tsv"
+        "protein_to_protein": "data/protein_to_protein.tsv",
+        "drug_to_indication": "data/drug_indication_df.tsv"
     },
     "diffusion": {
-        "diffusion_embs_dir": "results/covid/"
+        "diffusion_embs_dir": "results/covid/",
+        "eval_diffusion_embs_dir": "results/"
     },
     "node2vec": {
         "emb_file_prefix": "whole_graph_node2vec_walk",
+        "eval_emb_file_prefix": "eval_node2vec_walk",
         "walk_length": 16,
         "number_walk": 64
     },
