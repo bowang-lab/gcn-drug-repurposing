@@ -314,7 +314,7 @@ for indication in indications:
     tmp = dp_saved.drug_or_indication2diffusion_profile[indication]
     predict = tmp[drugs_index_in_msi]
     auc = roc_auc_score(ref, predict)
-    print(auc)
+    # print(auc)
     all_aucs.append(auc)
 all_aucs = np.array(all_aucs)
 print(f"median auc: {np.median(all_aucs)}, mean auc: {all_aucs.mean()}")
