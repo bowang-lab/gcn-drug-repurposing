@@ -1,3 +1,5 @@
+from utils import convert_name_list
+from matplotlib import pyplot as plt
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import normalize
 from openne.node2vec import Node2vec
@@ -318,3 +320,29 @@ for indication in indications:
     all_aucs.append(auc)
 all_aucs = np.array(all_aucs)
 print(f"median auc: {np.median(all_aucs)}, mean auc: {all_aucs.mean()}")
+
+# -------------------------------------------------
+drug = 'DB00747'
+degree = len(msi.graph[drug])
+degree_list = [len(msi.graph[drug]) for drug in drugs]
+plt.figure()
+plt.hist(degree_list, bins=[0, 1, 2, 4, 16, 64, 256])
+
+plt.savefig('degree.png')
+
+# -------------------------------------------------
+permutations = pd.read_csv(
+    'data/StringDatabaseWithLogFcOfGenesPassing5pFDRcutoff.tsv', sep='\t')
+# permutations = permutations[permutations['ChangesAt24hours'].notna(
+# ) | permutations['ChangesDueToCovidAt24Hour'].notna()]
+permutations = permutations[(permutations['ChangesDueToCovidAt24Hour'] > 2) | (
+    permutations['ChangesDueToCovidAt24Hour'] < -2)]
+permutations['avg'] = permutations[['ChangesAt24hours',
+                                    'ChangesDueToCovidCovariate', 'ChangesDueToCovidAt24Hour']].mean(axis=1)
+permutations = permutations.drop(columns=['annotation', 'protein_size'])
+
+perm_StringID = list(permutations['protein_external_id'])
+perm_UniprotKB_ID = convert_name_list(
+    perm_StringID, from_data='STRING_ID', to_data='ID')
+perm_protein_name = convert_name_list(
+    perm_UniprotKB_ID, from_data='ID', to_data='GENENAME')

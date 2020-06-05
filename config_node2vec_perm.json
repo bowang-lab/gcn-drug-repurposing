@@ -2,18 +2,18 @@
     "name": "Drug Repurposing",
     "n_gpu": 1,
     "load_embs": true,
-    "method": "diffusion",
+    "method": "node2vec",
     "eval": {
         "graph": "eval.weighted.edgelist"
     },
     "output": {
         "drug_candidates": "drugs_candidataes.txt",
-        "graph": "whole_graph.weighted.edgelist"
+        "graph": "whole_graph_perm.weighted.edgelist"
     },
     "topk": 40,
     "covid": {
         "save_dir": "data/covid_to_protein.tsv",
-        "add_permutation": false,
+        "add_permutation": true,
         "permutation_file": "data/StringDatabaseWithLogFcOfGenesPassing5pFDRcutoff.tsv"
     },
     "networks": {
@@ -26,10 +26,10 @@
         "eval_diffusion_embs_dir": "results/"
     },
     "node2vec": {
-        "emb_file_prefix": "whole_graph_node2vec_walk",
+        "emb_file_prefix": "whole_graph_node2vec_perm_walk",
         "eval_emb_file_prefix": "eval_node2vec_walk",
         "walk_length": 16,
-        "number_walk": 64
+        "number_walk": 32
     },
     "gcn": {
         "embs": "node2vec",

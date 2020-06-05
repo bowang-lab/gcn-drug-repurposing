@@ -7,7 +7,10 @@ import numpy as np
 import pandas as pd
 
 
-def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
+def query_uniprot2data(query='P40925 P40926',
+                       to_data='String',
+                       from_data='ACC+ID',
+                       style='list'):
     if to_data == 'String':
         target = 'STRING_ID'
     else:
@@ -15,7 +18,7 @@ def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
     url = 'https://www.uniprot.org/uploadlists/'
 
     params = {
-        'from': 'ACC+ID',
+        'from': from_data,
         'to': target,
         'format': style,
         'query': query
@@ -28,6 +31,13 @@ def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
         response = f.read()
     # print(response.decode('utf-8'))
     return response.decode('utf-8')
+
+
+def convert_name_list(name_list, from_data, to_data):
+    query = ' '.join(name_list).strip()
+    res = query_uniprot2data(
+        query=query, from_data=from_data, to_data=to_data).strip().split('\n')
+    return res
 
 
 def make_SARSCOV2_PPI(

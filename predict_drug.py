@@ -20,6 +20,7 @@ import collections
 import argparse
 from parse_config import ConfigParser
 from utils import query_uniprot2data, make_SARSCOV2_PPI
+from utils import convert_name_list
 
 
 def graph_embedding(config, msi, gcn=False):
@@ -33,6 +34,9 @@ def graph_embedding(config, msi, gcn=False):
     if not os.path.exists(emb_file):
         g = Graph()
         g.read_g(msi.graph)
+        print('assigning initail weights to 1.0')
+        for i, j in g.G.edges():
+            g.G[i][j]['weight'] = 1.0
         model = Node2vec(
             graph=g, path_length=walk_length,
             num_paths=number_walks, dim=128,
@@ -165,6 +169,34 @@ def main(config):
     msi = MSI(indication2protein_file_path=covid_to_protein,
               indication2protein_directed=False)
     msi.load()
+    print('assigning initail weights to 1.0')
+    for i, j in msi.graph.edges():
+        msi.graph[i][j]['weight'] = 1.0
+    if config['covid']['add_permutation']:
+        permutations = pd.read_csv(
+            config['covid']['permutation_file'], sep='\t')
+        # permutations = permutations[permutations['ChangesAt24hours'].notna(
+        # ) | permutations['ChangesDueToCovidAt24Hour'].notna()]
+        permutations = permutations[(permutations['ChangesDueToCovidAt24Hour'] > 2) | (
+            permutations['ChangesDueToCovidAt24Hour'] < -2)]
+        permutations['avg'] = permutations[['ChangesAt24hours',
+                                            'ChangesDueToCovidCovariate', 'ChangesDueToCovidAt24Hour']].mean(axis=1)
+        permutations = permutations.drop(
+            columns=['annotation', 'protein_size'])
+
+        perm_StringID = list(permutations['protein_external_id'])
+        perm_UniprotKB_ID = convert_name_list(
+            perm_StringID, from_data='STRING_ID', to_data='ID')
+        perm_protein_name = convert_name_list(
+            perm_UniprotKB_ID, from_data='ID', to_data='GENENAME')
+        for protein in perm_protein_name:
+            try:
+                protein_node = msi.name2node[protein]
+                msi.graph.add_edge('NodeCovid', protein_node)
+                msi.graph.add_edge('NodeCovid', protein_node)
+            except Exception:
+                print(Exception)
+        print(msi.graph['10349'])
 
     # store the whole graph
     if not os.path.exists(save_graph_file):
