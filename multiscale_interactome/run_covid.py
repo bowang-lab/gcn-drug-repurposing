@@ -346,3 +346,12 @@ perm_UniprotKB_ID = convert_name_list(
     perm_StringID, from_data='STRING_ID', to_data='ID')
 perm_protein_name = convert_name_list(
     perm_UniprotKB_ID, from_data='ID', to_data='GENENAME')
+
+# -------------------------------------------------
+# cyclica_DTI = pd.read_csv('bioactivities_bioactivities.csv')
+# cyclica_DTI.columns.values
+# array(['Unnamed: 0', 'accession', 'article_doi', 'entry_name',
+#        'isomeric_smiles', 'op', 'orig_unit', 'orig_value',
+#        'patent_number', 'pubchem_aid', 'pubmed', 'source_db',
+#        'source_link', 'std_unit', 'std_value', 'stitch_confidence_score',
+#        'type'], dtype=object)
