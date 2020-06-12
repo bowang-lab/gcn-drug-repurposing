@@ -34,9 +34,9 @@ def graph_embedding(config, msi, gcn=False):
     if not os.path.exists(emb_file):
         g = Graph()
         g.read_g(msi.graph)
-        print('assigning initail weights to 1.0')
-        for i, j in g.G.edges():
-            g.G[i][j]['weight'] = 1.0
+        # print('assigning initail weights to 1.0')
+        # for i, j in g.G.edges():
+        #     g.G[i][j]['weight'] = 1.0
         model = Node2vec(
             graph=g, path_length=walk_length,
             num_paths=number_walks, dim=128,
@@ -169,9 +169,16 @@ def main(config):
     msi = MSI(indication2protein_file_path=covid_to_protein,
               indication2protein_directed=False)
     msi.load()
-    print('assigning initail weights to 1.0')
-    for i, j in msi.graph.edges():
-        msi.graph[i][j]['weight'] = 1.0
+    print('assigning weights')
+    weights = {
+        'down_functional_pathway': 4.4863053901688685,
+        'indication': 3.541889556309463,
+        'functional_pathway': 6.583155399238509,
+        'up_functional_pathway': 2.09685000906964,
+        'protein': 4.396695660380823,
+        'drug': 3.2071696595616364
+    }
+    msi.weight_graph(weights)
     if config['covid']['add_permutation']:
         permutations = pd.read_csv(
             config['covid']['permutation_file'], sep='\t')
