@@ -179,7 +179,23 @@ def main(config):
         'drug': 3.2071696595616364
     }
     msi.weight_graph(weights)
+    if config['covid'].get('add_pathway'):
+        print('adding pathway connections')
+        perm_pathways = pd.read_csv(
+            config['covid']['pertub_pathway_file'], sep='\t')
+        pathway_ID = list(set(perm_pathways['Pathway_ID']))
+        for pathway in pathway_ID:
+            if pathway in msi.graph.nodes:
+                try:
+                    msi.graph.add_edge('NodeCovid', pathway,
+                                       weight=3.0/len(pathway_ID))
+                    msi.graph.add_edge(pathway, 'NodeCovid',
+                                       weight=3.0/len(pathway_ID))
+                    print(f"find {pathway}")
+                except Exception:
+                    print(Exception)
     if config['covid']['add_permutation']:
+        print('adding pertubation protein connections')
         permutations = pd.read_csv(
             config['covid']['permutation_file'], sep='\t')
         # permutations = permutations[permutations['ChangesAt24hours'].notna(
@@ -200,7 +216,7 @@ def main(config):
             try:
                 protein_node = msi.name2node[protein]
                 msi.graph.add_edge('NodeCovid', protein_node)
-                msi.graph.add_edge('NodeCovid', protein_node)
+                msi.graph.add_edge(protein_node, 'NodeCovid')
             except Exception:
                 print(Exception)
         print(msi.graph['10349'])
