@@ -2,7 +2,7 @@ import os
 from scipy.io import loadmat
 import numpy as np
 
-from utils.evaluate import compute_map
+from helpers.evaluate import compute_map
 
 def init_revop(dataset,data_root):
     global test_dataset

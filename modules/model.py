@@ -201,19 +201,76 @@ class ResidualGraphConvolutionalNetwork(nn.Module):
             if residual is not None:
                 x = residual + self.layer_decay * x
             residual = pre_nonlinearity
-        output, hidden_emb = self.decoder(x)
+        # output, hidden_emb = self.decoder(x)
+        hidden_emb = F.normalize(x, dim=1)
 
-        return output, hidden_emb
+        return hidden_emb
 
 
 class GSS_loss():
     def __init__(self, alpha):
         self.alpha = alpha
 
-    def gss_loss(self, logits, beta, index=None):
+    def gss_loss(self, embs, beta, index=None):
         """If index is None, that means computing loss on all data"""
         if index is not None:
-            losses = -0.5 * self.alpha * (logits[index][:, index] - beta) ** 2
-            return torch.mean(losses)
+            embs = embs[index]
+        adj_preds = torch.mm(embs, embs.transpose(0, 1))
+        logits = F.relu(adj_preds)
         losses = -0.5 * self.alpha * (logits - beta) ** 2
         return torch.mean(losses)
+
+    def tri_loss(self, anchor_ind, logits):
+        '''
+        Implement the Bayesian Personalized Ranking (BPR) Loss.
+
+        Args:
+            user (Tensor): Embedding of users, shape (N, D)
+            pos_item (Tensor): Embedding of positive items, shape (N, D)
+            neg_item (Tensor): Embedding of negative items, shape (N, D)
+        '''
+        pos_scores = torch.mul(user, pos_item).sum(1)
+        neg_scores = torch.mul(user, neg_item).sum(1)
+
+        batch_size = user.size(0)
+        regularizer = 0.5 * (user.pow(2).sum() +
+                             pos_item.pow(2).sum() + neg_item.pow(2).sum())
+        regularizer = regularizer / batch_size
+
+        mf_loss = 130 * torch.mean(F.softplus(-(pos_scores - neg_scores)))
+        # mf_loss = mf_loss / batch_size
+
+        emb_loss = decay * regularizer
+
+        return mf_loss + emb_loss
+
+    def bpr_rdp_loss2(Ws, Ds, *feas):
+        '''
+        $$
+        \min_{A} \frac{1}{2} \sum_{i,j,k,l=1}^{N} W_{ij}W_{kl} (\frac{A_{ki}}{\sqrt{D_{ii}D_{kk}}} - \frac{A_{lj}}{\sqrt{D_{jj}D_{ll}}})^2
+        + \mu \sum_{k,i=1}^{N}(A_{ki}-Y_{ki})^2
+        $$
+        '''
+        W_ij, W_kl, Y_ki = Ws
+        D_ii, D_kk, D_jj, D_ll = Ds
+        i_fea, j_fea, k_fea, l_fea, i_neg_fea, k_neg_fea = feas
+        # A_ki = torch.mul(k_fea, i_fea).sum(1)
+        # A_lj = torch.mul(l_fea, j_fea).sum(1)
+        A_ki = F.cosine_similarity(k_fea, i_fea)
+        A_lj = F.cosine_similarity(l_fea, j_fea)
+        inner1 = A_ki * (D_ii * D_kk).rsqrt()
+        inner2 = A_lj * (D_jj * D_ll).rsqrt()
+        coe = torch.max(inner1*inner2, torch.tensor(1e-6).cuda()).detach()
+        rdp_loss = torch.log(1 + 1e5 * coe * W_ij * W_kl *
+                             (inner1 - inner2).abs()).mean()
+        # rdp_loss = 1000 * (W_ij * W_kl * torch.log(1 + (inner1 - inner2).abs())).mean()
+        # rdp_loss = 1000 * torch.log(1 + W_ij * W_kl * (inner1 - inner2).abs()).mean()
+        bpr_i = bpr_loss(i_fea, j_fea, i_neg_fea)
+        bpr_k = bpr_loss(k_fea, l_fea, k_neg_fea)
+        loss = bpr_i + bpr_k + rdp_loss
+        # loss = 10000 * rdp_loss.mean()
+        # loss = bpr_i + bpr_k
+        # print("bpr_i: {}, bpr_k: {}, rdp: {}".format(bpr_i, bpr_k, rdp_loss))
+        # loss = bpr_i + bpr_k
+        # loss = bpr_i
+        return loss

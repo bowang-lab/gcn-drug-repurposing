@@ -1,0 +1,40 @@
+{
+    "name": "Drug Repurposing",
+    "n_gpu": 1,
+    "load_embs": true,
+    "method": "gcn",
+    "eval": {
+        "graph": "eval.weighted.edgelist"
+    },
+    "output": {
+        "drug_candidates": "drugs_candidataes_pathway_gcn.tsv",
+        "graph": "whole_graph_perm.weighted.edgelist"
+    },
+    "topk": 60,
+    "covid": {
+        "save_dir": "data/covid_to_protein.tsv",
+        "add_permutation": false,
+        "permutation_file": "data/StringDatabaseWithLogFcOfGenesPassing5pFDRcutoff.tsv",
+        "add_pathway": true,
+        "pertub_pathway_file": "data/04_Immune_Genes_Enrichment_GO_MF_BP_Intersection.tsv"
+    },
+    "networks": {
+        "gordon_viral_protein": "data/GordonEtAl-2020.tsv",
+        "protein_to_protein": "data/protein_to_protein.tsv",
+        "drug_to_indication": "data/drug_indication_df.tsv"
+    },
+    "diffusion": {
+        "diffusion_embs_dir": "results/covid/",
+        "eval_diffusion_embs_dir": "results/"
+    },
+    "node2vec": {
+        "emb_file_prefix": "whole_graph_node2vec_pathway_walk",
+        "eval_emb_file_prefix": "eval_node2vec_pathway_walk",
+        "walk_length": 16,
+        "number_walk": 64
+    },
+    "gcn": {
+        "embs": "node2vec",
+        "emb_file": "whole_graph_gcn_pathway.embs.txt"
+    }
+}

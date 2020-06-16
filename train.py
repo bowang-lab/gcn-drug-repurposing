@@ -1,12 +1,11 @@
 from __future__ import division
-from __future__ import print_function
 
 import argparse
 import os
 import torch
 import numpy as np
 from modules.model import *
-from dataset import DiffusionDataLoader, DiffusionDataSet
+from method.dataset import DiffusionDataLoader, DiffusionDataSet
 
 from helpers.helper import *
 
@@ -26,7 +25,7 @@ parser.add_argument('--epochs', type=int, default=200,
                     help='Number of epochs to train.')
 parser.add_argument('--batch-size', type=int, default=0,
                     help='Batch size. Set to 0 (default) if train the batch of all samples.')
-parser.add_argument('--hidden-units', type=int, default=100,
+parser.add_argument('--hidden-units', type=int, default=128,
                     help='Number of units in hidden layer')
 parser.add_argument('--num-layers', type=int,
                     default=2, help='Number of layers')
@@ -41,6 +40,8 @@ parser.add_argument('--layer-decay', type=float, default=0.3,
                     help='Residual GCN layer decay.')
 parser.add_argument('--dataset', type=str, default='roxford5k', choices=['roxford5k', 'rparis6k', 'instre'],
                     help='Dataset.')
+parser.add_argument('--emb-file', type=str, default=None,
+                    help='embedding file name.')
 parser.add_argument('--data-path', type=str, default=None,
                     help='Dataset files location.')
 parser.add_argument('--gpu-id', type=int, default=None,
@@ -75,9 +76,8 @@ def main(args):
         np.random.seed(args.seed)
 
     # Q, X = load_data(args.dataset, args.data_path)
-    ppi_embs = np.loadtxt('STRING_PPI_struc2vec_embs.txt', skiprows=1)
-    ppi_id = ppi_embs[:, 0].astype(int)
-    ppi_embs = ppi_embs[:, 1:]
+    ppi_embs = np.loadtxt(args.emb_file, skiprows=1, dtype=object)
+    ppi_embs = ppi_embs[:, 1:].astype(np.float)
     X = ppi_embs.T  # (d, num_nodes)
     Q = X[:, 0:3]
 
@@ -165,16 +165,16 @@ def main(args):
         for batch_id, batch_data in enumerate(training_loader):
             if args.gpu_id is not None:
                 batch_data = batch_data.cuda()
-            logits, hidden_emb = model(
+            hidden_emb = model(
                 x=training_dataset.features.cuda(
-                ) if args.gpu_id is not None else validation_dataset.features,
+                ) if args.gpu_id is not None else training_dataset.features,
                 adj=training_dataset.adj)
 
-            if itr == 0:
-                hidden_emb = hidden_emb.cpu().data
+            if itr == 0 and batch_id == 0:
+                hidden_emb0 = hidden_emb.cpu().data
                 if args.beta_percentile is not None:
                     beta_score = np.percentile(
-                        np.dot(hidden_emb, hidden_emb.T).flatten(), args.beta_percentile)
+                        np.dot(hidden_emb0, hidden_emb0.transpose(0, 1)).flatten(), args.beta_percentile)
                 elif args.beta is not None:
                     beta_score = args.beta
                 else:
@@ -182,7 +182,7 @@ def main(args):
                         'At least one of beta and beta_percentile should be set!')
 
             # !# need to change the loss here to support tri_loss and load and use the graph computed
-            loss = loss_fcn(logits=logits, beta=beta_score,
+            loss = loss_fcn(embs=hidden_emb, beta=beta_score,
                             index=batch_data.detach())
             # if args.regularizer_scale:
             #     l2 = 0
