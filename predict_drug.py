@@ -71,7 +71,7 @@ def graph_embedding(config, msi, gcn=False):
     drugs_ranked = [drug_names[i] for i in proximities_ranked_id]
     drugs_name_ranked = [drug if msi.node2name[drug]
                          is np.nan else msi.node2name[drug] for drug in drugs_ranked]
-    return drugs_name_ranked
+    return drugs_name_ranked, drugs_ranked, proximities[proximities_ranked_id]
 
 
 def diffusion_method(diffusion_embs_dir, msi):
@@ -122,7 +122,7 @@ def diffusion_method(diffusion_embs_dir, msi):
     drugs_name_ranked = [drug if msi.node2name[drug]
                          is np.nan else msi.node2name[drug] for drug in drugs_ranked]
 
-    return drugs_name_ranked
+    return drugs_name_ranked, drugs_ranked, proximities[proximities_ranked_id]
 
 
 def main(config):
@@ -231,16 +231,56 @@ def main(config):
 
     # nx.write_edgelist(msi.graph, 'whole_graph.edgelist')
     if method == 'diffusion':
-        drugs_name_ranked = diffusion_method(diffusion_embs_dir, msi)
+        drugs_name_ranked, drugs_ranked, proximities_ranked = diffusion_method(
+            diffusion_embs_dir, msi)
     elif method == 'node2vec':
-        drugs_name_ranked = graph_embedding(config, msi, gcn=False)
+        drugs_name_ranked, drugs_ranked, proximities_ranked = graph_embedding(
+            config, msi, gcn=False)
     elif method == 'gcn' and config['gcn']['embs'] == "node2vec":
-        drugs_name_ranked = graph_embedding(config, msi, gcn=True)
+        drugs_name_ranked, drugs_ranked, proximities_ranked = graph_embedding(
+            config, msi, gcn=True)
     else:
         raise NotImplementedError
-    with open(save_drug_candidates_dir, 'w') as f:
-        f.write('\n'.join(drugs_name_ranked[:topk]))
+    # with open(save_drug_candidates_dir, 'w') as f:
+    #     f.write('\n'.join(drugs_name_ranked[:topk]))
+    output_drugs(drugs_name_ranked, drugs_ranked,
+                 proximities_ranked, topk, save_drug_candidates_dir, msi)
     return msi
+
+
+def output_drugs(drugs_name_ranked, drugs_ranked, proximities_ranked,
+                 topk, save_drug_candidates_dir, msi):
+    top_drugs = drugs_ranked[:topk]
+    gordon_proteins = [node for node in list(
+        msi.graph['NodeCovid'].keys()) if msi.graph.nodes[node]['type'] == 'protein']
+    pathways = [node for node in list(
+        msi.graph['NodeCovid'].keys()) if msi.graph.nodes[node]['type'] == 'functional_pathway']
+    connected_gordon_proteins = []
+    shortest_paths = []
+    path_lengths = []
+    for drug_node in top_drugs:
+        this_connected_proteins = [msi.node2name[protein]
+                                   for protein in gordon_proteins if protein in msi.graph[drug_node]]
+        if this_connected_proteins:
+            connected_gordon_proteins.append(
+                ', '.join(this_connected_proteins))
+        else:
+            connected_gordon_proteins.append('NA')
+        # compute paths
+        path = nx.shortest_path(
+            msi.graph, source=drug_node, target='NodeCovid')
+        path_node_names = [node if msi.node2name[node]
+                           is np.nan else msi.node2name[node] for node in path]
+        shortest_paths.append(', '.join(path_node_names))
+        path_lengths.append(len(path)-1)
+    df = pd.DataFrame({
+        'drug name': drugs_name_ranked[:topk],
+        'proximity': proximities_ranked[:topk],
+        'conected gordon proteins': connected_gordon_proteins,
+        'shortest path to Covid': shortest_paths,
+        'path length': path_lengths
+    })
+    df.to_csv(save_drug_candidates_dir, sep='\t', na_rep='NA', index=False)
 
 
 def run_predict():

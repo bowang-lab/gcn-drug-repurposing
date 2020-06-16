@@ -7,10 +7,10 @@
         "graph": "eval.weighted.edgelist"
     },
     "output": {
-        "drug_candidates": "drugs_candidataes.txt",
+        "drug_candidates": "drugs_candidataes.tsv",
         "graph": "whole_graph.weighted.edgelist"
     },
-    "topk": 40,
+    "topk": 60,
     "covid": {
         "save_dir": "data/covid_to_protein.tsv",
         "add_permutation": false,

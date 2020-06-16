@@ -7,7 +7,7 @@
         "graph": "eval.weighted.edgelist"
     },
     "output": {
-        "drug_candidates": "drugs_candidataes_path.txt",
+        "drug_candidates": "drugs_candidataes_path.tsv",
         "graph": "whole_graph_perm.weighted.edgelist"
     },
     "topk": 60,

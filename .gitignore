@@ -16,4 +16,5 @@ results/
 saved/
 *.dat
 *.txt
+*.tsv
 *.edgelist
