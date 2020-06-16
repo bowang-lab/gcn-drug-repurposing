@@ -355,3 +355,46 @@ perm_protein_name = convert_name_list(
 #        'patent_number', 'pubchem_aid', 'pubmed', 'source_db',
 #        'source_link', 'std_unit', 'std_value', 'stitch_confidence_score',
 #        'type'], dtype=object)
+
+# perm_pathways = pd.read_csv(
+#     'data/04_Immune_Genes_Enrichment_GO_MF_BP_Intersection.tsv', sep='\t')
+# pathway_ID = list(set(perm_pathways['Pathway_ID']))
+
+
+# -------------------------------------------------
+gcn_embs = np.loadtxt("whole_graph_gcn_pathway.embs.txt")
+gcn_embs = normalize(gcn_embs, axis=1)
+ppi_embs = np.loadtxt(
+    "whole_graph_node2vec_pathway_walk_num_64_len_16.embs.txt", skiprows=1, dtype=object)
+nodes = list(ppi_embs[:, 0])
+del ppi_embs
+node_names = [msi.node2name[node] for node in nodes]
+
+covid_emb = gcn_embs[nodes.index('NodeCovid')]
+protein_mask = [True if (msi.graph.node[node]['type'] ==
+                         'protein' and msi.node2name[node] is not np.nan) else False for node in nodes]
+protein_names = list(np.array(node_names)[protein_mask])
+protein_embs = gcn_embs[protein_mask]
+protein_proximities = list(np.matmul(protein_embs, covid_emb))
+
+
+shortest_paths = []
+path_lengths = []
+for node in list(np.array(nodes)[protein_mask]):
+    # compute paths
+    path = nx.shortest_path(
+        msi.graph, source=node, target='NodeCovid')
+    path_node_names = [node if msi.node2name[node]
+                       is np.nan else msi.node2name[node] for node in path]
+    shortest_paths.append(', '.join(path_node_names))
+    path_lengths.append(len(path)-1)
+
+
+protein_df = pd.DataFrame({
+    'protein name': protein_names,
+    'proximity to covid-19 node': protein_proximities,
+    'shortest path to Covid': shortest_paths,
+    'path length': path_lengths
+})
+protein_df.to_csv('all_protein_proximities_pathway_gcn.tsv',
+                  sep='\t', na_rep='NA', index=False)
