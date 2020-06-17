@@ -392,8 +392,8 @@ for node in list(np.array(nodes)[protein_mask]):
 
 protein_df = pd.DataFrame({
     'protein name': protein_names,
-    'proximity to covid-19 node': protein_proximities,
-    'shortest path to Covid': shortest_paths,
+    'proximity to Covid-19': protein_proximities,
+    'shortest path to Covid-19': shortest_paths,
     'path length': path_lengths
 })
 protein_df.to_csv('all_protein_proximities_pathway_gcn.tsv',
