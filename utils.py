@@ -52,6 +52,22 @@ def make_SARSCOV2_PPI(
     return string_id
 
 
+def make_SARSCOV2_PPI_baits(
+        file='/h/haotian/Code/deep-drug-repurposing/data/viral_ppi/GordonEtAl-2020.tsv',
+        to_data='GENENAME'):
+    ppi = pd.read_csv(file, sep='\t')
+    name_list = ppi['Preys'].to_list()
+    viral_baits = ppi['Bait'].tolist()
+    viral_baits = [bait.replace(' ', '-') for bait in viral_baits]
+    query = ' '.join(name_list).strip()
+    protein_ids = query_uniprot2data(
+        query=query, to_data=to_data).strip().split('\n')
+
+    bait_prey_pairs = list(zip(viral_baits, protein_ids))
+    # ppi['string_id'] = string_id
+    return bait_prey_pairs
+
+
 def load_drugs_from(file):
     """the file should be a pkl binary file."""
 
