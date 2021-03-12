@@ -1,0 +1,61 @@
+drug name	proximity	conected gordon proteins	shortest path to Covid	path length
+entacapone	5.521178434453584	COMT	entacapone, COMT, covid-19	2
+Tolcapone	5.1914716862516865	COMT	Tolcapone, COMT, covid-19	2
+benzbromarone	5.007195654696897	ABCC1	benzbromarone, ABCC1, covid-19	2
+OPICAPONE	4.977695535412291	COMT	OPICAPONE, COMT, covid-19	2
+flucytosine	4.85918564503131	DNMT1	flucytosine, DNMT1, covid-19	2
+nelarabine	4.759906417516984	POLA1	nelarabine, POLA1, covid-19	2
+eflornithine	4.7458981830069735	SLC25A21	eflornithine, SLC25A21, covid-19	2
+anisindione	4.638630541180689	GGCX	anisindione, GGCX, covid-19	2
+phytonadione	4.575382208778699	GGCX	phytonadione, GGCX, covid-19	2
+dacarbazine	4.51434201564575	POLA2	dacarbazine, POLA2, covid-19	2
+azacitidine	4.336473185127404	DNMT1	azacitidine, DNMT1, covid-19	2
+decitabine	4.0605701706299255	DNMT1	decitabine, DNMT1, covid-19	2
+bacitracin	3.9427615797622266	IDE	bacitracin, IDE, covid-19	2
+levocarnitine-propionate	3.936013748780004	NA	levocarnitine-propionate, CRAT, PEX5, SLC27A2, covid-19	4
+bucladesine	3.9078474676751704	PRKACA	bucladesine, PRKACA, covid-19	2
+DB00533	3.8552341985991347	NA	DB00533, PTGS2, STOM, covid-19	3
+L-Asparagine	3.790230549458702	NARS2	L-Asparagine, NARS2, covid-19	2
+Pentazocine	3.720596411257948	SIGMAR1	Pentazocine, SIGMAR1, covid-19	2
+6-Aminocaproic Acid	3.7050034080789667	PLAT	6-Aminocaproic Acid, PLAT, covid-19	2
+etidronic-acid	3.5981964277018648	ATP6V1A	etidronic-acid, ATP6V1A, covid-19	2
+Captodiame	3.5720564027160684	SIGMAR1	Captodiame, SIGMAR1, covid-19	2
+naltrexone	3.53869510363924	SIGMAR1	naltrexone, SIGMAR1, covid-19	2
+mycophenolate-mofetil	3.495644399185806	IMPDH2	mycophenolate-mofetil, IMPDH2, covid-19	2
+Tixocortol	3.3770942415272653	HDAC2	Tixocortol, HDAC2, covid-19	2
+sertraline	3.3305201877461568	SIGMAR1	sertraline, SIGMAR1, covid-19	2
+mycophenolic-acid	3.2804765162192218	IMPDH2	mycophenolic-acid, IMPDH2, covid-19	2
+procainamide	3.277503073729653	DNMT1	procainamide, DNMT1, covid-19	2
+thioguanine	3.25922897568726	IMPDH2	thioguanine, IMPDH2, covid-19	2
+ademetionine	3.239845584440726	COMT	ademetionine, COMT, covid-19	2
+sulfinpyrazone	3.2179392138764937	ABCC1	sulfinpyrazone, ABCC1, covid-19	2
+deslanoside	3.1829637325381803	ATP1B1	deslanoside, ATP1B1, covid-19	2
+trepibutone	3.165324860799871	NA	trepibutone, CHRM3, ARF6, covid-19	3
+cyclopentolate	3.122827162676611	NA	cyclopentolate, CHRM1, nortriptyline, SIGMAR1, covid-19	4
+clofarabine	3.0909076032808125	POLA1	clofarabine, POLA1, covid-19	2
+Coagulation Factor IX	3.05494614930558	GGCX	Coagulation Factor IX, GGCX, covid-19	2
+thiamine	3.036034455577212	NA	thiamine, TPK1, THTPA, covid-19	3
+tiagabine	3.0274574210799403	NA	tiagabine, SLC6A1, STX1A, VPS11, covid-19	4
+nicotinamide	3.0093558324355296	SIRT5	nicotinamide, SIRT5, covid-19	2
+Anisotropine Methylbromide	2.998494343976839	NA	Anisotropine Methylbromide, CHRM3, ARF6, covid-19	3
+clidinium	2.996910039409901	NA	clidinium, CHRM3, ARF6, covid-19	3
+DB01303	2.94634886222841	HDAC2	DB01303, HDAC2, covid-19	2
+mebeverine	2.9382029125340106	NA	mebeverine, CHRM1, nortriptyline, SIGMAR1, covid-19	4
+CHROMIUM	2.9312239026432674	NA	CHROMIUM, CYB5A, CYB5R3, covid-19	3
+esomeprazole	2.9185548249714497	NA	esomeprazole, ATP4A, ATP1B1, covid-19	3
+icosapent	2.917062627888785	ACSL3	icosapent, ACSL3, covid-19	2
+dexlansoprazole	2.910836821463081	NA	dexlansoprazole, ATP4A, RAB1A, covid-19	3
+mercaptopurine	2.8803738105336514	IMPDH2	mercaptopurine, IMPDH2, covid-19	2
+pilocarpine	2.8733382708439414	NA	pilocarpine, CHRM3, ARF6, covid-19	3
+cytarabine	2.8570985978144128	POLA1	cytarabine, POLA1, covid-19	2
+Fondaparinux	2.8253076114120725	NA	Fondaparinux, F10, PLAT, covid-19	3
+diphenidol	2.808545270824608	NA	diphenidol, CHRM3, ARF6, covid-19	3
+Coagulation factor VIIa Recombinant Human	2.801551322843277	GGCX	Coagulation factor VIIa Recombinant Human, GGCX, covid-19	2
+tiotropium	2.796172750645194	NA	tiotropium, CHRM3, ARF6, covid-19	3
+streptozotocin	2.7941895069854725	NA	streptozotocin, SLC2A2, PRKACA, covid-19	3
+fludarabine-phosphate	2.784963334032967	POLA1	fludarabine-phosphate, POLA1, covid-19	2
+tiludronate	2.779965824141411	ATP6V1A	tiludronate, ATP6V1A, covid-19	2
+Glycodiazine	2.7644595691536944	NA	Glycodiazine, KCNJ1, SLC9A3R1, covid-19	3
+Danaparoid	2.763562921855433	NA	Danaparoid, SERPINC1, OS9, covid-19	3
+Kappadione	2.757684704701323	GGCX	Kappadione, GGCX, covid-19	2
+fludarabine	2.7463906314302466	POLA1	fludarabine, POLA1, covid-19	2
