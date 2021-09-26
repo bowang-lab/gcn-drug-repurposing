@@ -1,3 +1,4 @@
+import json
 from utils import convert_name_list
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_auc_score
@@ -371,7 +372,7 @@ del ppi_embs
 node_names = [msi.node2name[node] for node in nodes]
 
 covid_emb = gcn_embs[nodes.index('NodeCovid')]
-protein_mask = [True if (msi.graph.node[node]['type'] ==
+protein_mask = [True if (msi.graph.nodes[node]['type'] ==
                          'protein' and msi.node2name[node] is not np.nan) else False for node in nodes]
 protein_names = list(np.array(node_names)[protein_mask])
 protein_embs = gcn_embs[protein_mask]
