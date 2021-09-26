@@ -19,6 +19,8 @@ from tests.diff_prof import test_diffusion_profiles
 import pandas as pd
 import urllib
 
+print("successful imports")
+
 
 def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
     if to_data == 'String':
