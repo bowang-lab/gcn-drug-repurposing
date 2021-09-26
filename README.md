@@ -4,6 +4,13 @@
 
 `pip install -r requirements.txt`
 
+## Predict the proximities for all target proteins and drugs with respect to Covid-19
+
+The predictions will be stored in a `tsv` file.
+```bash
+python run_covid.py
+```
+
 ## Predict drug candidates for covid
 
 - Download the data [here](https://drive.google.com/drive/folders/1W9G2Zxq385FlJSWaB3-wxsmBXTpfrPl2?usp=sharing) and set the data directories in `config.json`.
