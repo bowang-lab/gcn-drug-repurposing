@@ -14,10 +14,15 @@ import networkx as nx
 import pandas as pd
 import urllib
 
-print("successful imports")
+print("successfullly import dependencies")
+USE_GCN = True
 
 
-def query_uniprot2data(query='P40925 P40926', to_data='String', style='list'):
+def query_uniprot2data(
+    query='P40925 P40926',  # an input example
+    to_data='String',
+    style='list'
+):
     if to_data == 'String':
         target = 'STRING_ID'
     else:
@@ -92,6 +97,7 @@ diffusion_embs_dir = "results/covid/"
 if not os.path.exists(diffusion_embs_dir):
     # Calculate diffusion profiles
     print('Calculate diffusion profiles')
+    os.mkdir(diffusion_embs_dir)
     dp = DiffusionProfiles(
         alpha=0.8595436247434408,
         max_iter=1000,
@@ -116,7 +122,7 @@ dp_saved = DiffusionProfiles(
     tol=None,
     weights=None,
     num_cores=None,
-    save_load_file_path="results/covid/"
+    save_load_file_path=diffusion_embs_dir
 )
 msi.load_saved_node_idx_mapping_and_nodelist(dp_saved.save_load_file_path)
 dp_saved.load_diffusion_profiles(msi.drugs_in_graph + msi.indications_in_graph)
@@ -166,7 +172,7 @@ if not os.path.exists(emb_file):
 # load embs
 node_vecs = np.loadtxt(emb_file, skiprows=1, dtype=object)
 node_names = list(node_vecs[:, 0])
-if gcn:
+if USE_GCN:
     node_embs = np.loadtxt('whole_graph_gcn.embs.txt')
     node_embs = normalize(node_embs, axis=1)
 else:
@@ -194,25 +200,6 @@ drugs_name_ranked = [drug if msi.node2name[drug]
 
 with open('drugs_candidataes.txt', 'w') as f:
     f.write('\n'.join(drugs_name_ranked[:40]))
-
-
-# -------------------------------------------------
-msi = MSI()
-msi.load()
-
-# Load saved diffusion profiles
-dp_saved = DiffusionProfiles(
-    alpha=None,
-    max_iter=None,
-    tol=None,
-    weights=None,
-    num_cores=None,
-    save_load_file_path="results/"
-)
-msi.load_saved_node_idx_mapping_and_nodelist(dp_saved.save_load_file_path)
-dp_saved.load_diffusion_profiles(msi.drugs_in_graph + msi.indications_in_graph)
-
-dp_saved.drug_or_indication2diffusion_profile["DB00642"]
 
 
 class DrugToIndication():
@@ -303,30 +290,22 @@ for i, node in enumerate(msi.nodelist):
         indications_index_in_msi.append(i)
 # list of indications
 
-num_drugs = len(drugs_index_in_msi)
-all_aucs = []
-for indication in indications:
-    # build ref
-    ref = np.zeros(num_drugs, dtype=int)
-    for pos_drug in list(indication_graph.graph[indication]):
-        ref[drugs.index(pos_drug)] = 1
-    # predict vector
-    tmp = dp_saved.drug_or_indication2diffusion_profile[indication]
-    predict = tmp[drugs_index_in_msi]
-    auc = roc_auc_score(ref, predict)
-    # print(auc)
-    all_aucs.append(auc)
-all_aucs = np.array(all_aucs)
-print(f"median auc: {np.median(all_aucs)}, mean auc: {all_aucs.mean()}")
-
 # -------------------------------------------------
-drug = 'DB00747'
-degree = len(msi.graph[drug])
-degree_list = [len(msi.graph[drug]) for drug in drugs]
-plt.figure()
-plt.hist(degree_list, bins=[0, 1, 2, 4, 16, 64, 256])
-
-plt.savefig('degree.png')
+# num_drugs = len(drugs_index_in_msi)
+# all_aucs = []
+# for indication in indications:
+#     # build ref
+#     ref = np.zeros(num_drugs, dtype=int)
+#     for pos_drug in list(indication_graph.graph[indication]):
+#         ref[drugs.index(pos_drug)] = 1
+#     # predict vector
+#     tmp = dp_saved.drug_or_indication2diffusion_profile[indication]
+#     predict = tmp[drugs_index_in_msi]
+#     auc = roc_auc_score(ref, predict)
+#     # print(auc)
+#     all_aucs.append(auc)
+# all_aucs = np.array(all_aucs)
+# print(f"median auc: {np.median(all_aucs)}, mean auc: {all_aucs.mean()}")
 
 # -------------------------------------------------
 permutations = pd.read_csv(
@@ -344,20 +323,6 @@ perm_UniprotKB_ID = convert_name_list(
     perm_StringID, from_data='STRING_ID', to_data='ID')
 perm_protein_name = convert_name_list(
     perm_UniprotKB_ID, from_data='ID', to_data='GENENAME')
-
-# -------------------------------------------------
-# cyclica_DTI = pd.read_csv('bioactivities_bioactivities.csv')
-# cyclica_DTI.columns.values
-# array(['Unnamed: 0', 'accession', 'article_doi', 'entry_name',
-#        'isomeric_smiles', 'op', 'orig_unit', 'orig_value',
-#        'patent_number', 'pubchem_aid', 'pubmed', 'source_db',
-#        'source_link', 'std_unit', 'std_value', 'stitch_confidence_score',
-#        'type'], dtype=object)
-
-# perm_pathways = pd.read_csv(
-#     'data/04_Immune_Genes_Enrichment_GO_MF_BP_Intersection.tsv', sep='\t')
-# pathway_ID = list(set(perm_pathways['Pathway_ID']))
-
 
 # -------------------------------------------------
 gcn_embs = np.loadtxt("whole_graph_gcn_pathway.embs.txt")
