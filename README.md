@@ -3,7 +3,9 @@
 ## Installation
 
 1. `pip install -r requirements.txt`
-2. follow the instruction [here](https://github.com/thunlp/OpenNE) to install openne
+2. follow the instruction [here](https://github.com/thunlp/OpenNE) to install openne. For the specific version we used, check the submodule OpenNE in the resources folder.
+
+Note we inherited and edited the data and network buildup from [MSI](https://github.com/snap-stanford/multiscale-interactome). Credits to the original authors. Our edited version is stored in folder [multiscale](multiscale).
 
 ## Predict the proximities for all target proteins and drugs with respect to Covid-19
 
