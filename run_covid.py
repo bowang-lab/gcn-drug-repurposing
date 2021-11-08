@@ -291,44 +291,9 @@ for i, node in enumerate(msi.nodelist):
 # list of indications
 
 # -------------------------------------------------
-# num_drugs = len(drugs_index_in_msi)
-# all_aucs = []
-# for indication in indications:
-#     # build ref
-#     ref = np.zeros(num_drugs, dtype=int)
-#     for pos_drug in list(indication_graph.graph[indication]):
-#         ref[drugs.index(pos_drug)] = 1
-#     # predict vector
-#     tmp = dp_saved.drug_or_indication2diffusion_profile[indication]
-#     predict = tmp[drugs_index_in_msi]
-#     auc = roc_auc_score(ref, predict)
-#     # print(auc)
-#     all_aucs.append(auc)
-# all_aucs = np.array(all_aucs)
-# print(f"median auc: {np.median(all_aucs)}, mean auc: {all_aucs.mean()}")
-
-# -------------------------------------------------
-permutations = pd.read_csv(
-    'data/StringDatabaseWithLogFcOfGenesPassing5pFDRcutoff.tsv', sep='\t')
-# permutations = permutations[permutations['ChangesAt24hours'].notna(
-# ) | permutations['ChangesDueToCovidAt24Hour'].notna()]
-permutations = permutations[(permutations['ChangesDueToCovidAt24Hour'] > 2) | (
-    permutations['ChangesDueToCovidAt24Hour'] < -2)]
-permutations['avg'] = permutations[['ChangesAt24hours',
-                                    'ChangesDueToCovidCovariate', 'ChangesDueToCovidAt24Hour']].mean(axis=1)
-permutations = permutations.drop(columns=['annotation', 'protein_size'])
-
-perm_StringID = list(permutations['protein_external_id'])
-perm_UniprotKB_ID = convert_name_list(
-    perm_StringID, from_data='STRING_ID', to_data='ID')
-perm_protein_name = convert_name_list(
-    perm_UniprotKB_ID, from_data='ID', to_data='GENENAME')
-
-# -------------------------------------------------
 gcn_embs = np.loadtxt("whole_graph_gcn_pathway.embs.txt")
 gcn_embs = normalize(gcn_embs, axis=1)
-ppi_embs = np.loadtxt(
-    "whole_graph_node2vec_pathway_walk_num_64_len_16.embs.txt", skiprows=1, dtype=object)
+ppi_embs = np.loadtxt(emb_file, skiprows=1, dtype=object)
 nodes = list(ppi_embs[:, 0])
 del ppi_embs
 node_names = [msi.node2name[node] for node in nodes]

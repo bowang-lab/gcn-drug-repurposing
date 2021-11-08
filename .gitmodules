@@ -1,6 +1,3 @@
-[submodule "resources/proximity"]
-	path = resources/proximity
-	url = git@github.com:emreg00/proximity.git
 [submodule "resources/toolbox"]
 	path = resources/toolbox
 	url = git@github.com:emreg00/toolbox.git
