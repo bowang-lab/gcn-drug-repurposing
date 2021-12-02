@@ -140,16 +140,6 @@ def main(args):
                                  lr=args.lr,
                                  weight_decay=0)
 
-    # RMSprop reaches 76.48 with batch size 2048, although it's a bit better than Adam
-    # and will not drop the map in later training.
-    # optimizer = torch.optim.RMSprop(model.parameters(),
-    #                              lr=args.lr,
-    #                              centered=True)
-    # DenseSparseAdam reaches 76.53 with batch size 2048, although it's a bit better than Adam
-    # from allennlp.training.optimizers import DenseSparseAdam
-    # optimizer = DenseSparseAdam(model.parameters(),
-    #                              lr=args.lr)
-
     best_map = 0.0
     itr = 0
     model.train()
